@@ -1,5 +1,45 @@
 # Update Note
+### End of August.
+- [Mobile] We solved the error that the scroll disappeared when expanding the menu.
+- Bridge address from HT to ETH has been changed.
+- Docs UI Bug Minior fixed
+- BEP item has been added in Analytics.
+- The APY maximum value has been raised.
+- The URL has been changed to Footer.
 
+### September
+- Some contents have been changed in Whitepaper.
+- Whitepaper's Sidemenu solved the error that some sub-headings were not exposed.
+- BSC scan has been added to Footer.
+- BSC items have been added to Platforms and Verifiers.
+- TVL items have been added to Analytics.
+- User Guide has been added to Docs.
+- We solved the error that the mobile hamburger menu and webheader did not match.
+- Pool solved some malfunctioning errors of GetFiled.
+- When some buttons were mouse-up in the pool, the animation did not work.
+- A function to disconnect the connected wallet has been added.
+- The unit notation of MY Bal and Reward has been changed.
+- The station page has been design-reworked.
+- Changed it to - instead of 0 when the data was loading at the station.
+- We solved the error that did not show toast messages according to some events.
+- Pool solved the error of some misrepresented incineration.
+- We solved some malfunctioning errors when disconnecting the connected wallet.
+- We solved the error of not recognizing some of User Wallet's Network on mobile.
+- The way it is displayed has been changed according to the APY figure.
+- We solved the error that I couldn't see some of the pools Staking in My pool.
+- The location of BEP and HRC has been changed in Analytics.
+- Analytics solved an error that some of the Number of Chargers Activated functions were not functioning normally.
+- Analytics solved an error in which Carbon Redemption figures were not reflected in real time.
+- In Mobile, some users solved the error that the user guide was not visible.
+- We solved the error that the Defi Header was incorrectly marked on Mobile.
+- We solved the error that some figures in Analytics were malfunctioning.
+- Nomics has been added from Footer.
+- The contract scan address has been added to the Record Token page.
+
+### October
+- Team members & Advisors have been added to About.
+- Uniswap's RCG has also been changed to be reflected in Analytics' TVL.
+- Wallet discconnect In some environments, errors that do not work correctly have been resolved.
 
 
 # Getting Started with Create React App
