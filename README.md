@@ -1,11 +1,10 @@
 # Update Note
-### End of August.
-- [Mobile] We solved the error that the scroll disappeared when expanding the menu.
-- Bridge address from HT to ETH has been changed.
-- Docs UI Bug Minior fixed
-- BEP item has been added in Analytics.
-- The APY maximum value has been raised.
-- The URL has been changed to Footer.
+
+
+### October
+- Team members & Advisors have been added to About.
+- Uniswap's RCG has also been changed to be reflected in Analytics' TVL.
+- Wallet discconnect In some environments, errors that do not work correctly have been resolved.
 
 ### September
 - Some contents have been changed in Whitepaper.
@@ -36,11 +35,13 @@
 - Nomics has been added from Footer.
 - The contract scan address has been added to the Record Token page.
 
-### October
-- Team members & Advisors have been added to About.
-- Uniswap's RCG has also been changed to be reflected in Analytics' TVL.
-- Wallet discconnect In some environments, errors that do not work correctly have been resolved.
-
+### End of August.
+- [Mobile] We solved the error that the scroll disappeared when expanding the menu.
+- Bridge address from HT to ETH has been changed.
+- Docs UI Bug Minior fixed
+- BEP item has been added in Analytics.
+- The APY maximum value has been raised.
+- The URL has been changed to Footer.
 
 # Getting Started with Create React App
 
