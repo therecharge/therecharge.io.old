@@ -2,9 +2,11 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import ReactPaginate from "react-paginate";
 import commentList from "./commentList/index";
+import { HashLink } from "react-router-hash-link";
 import Footer from "../../Components/Desktop/Footer";
+import { withTranslation } from "react-i18next";
 
-function Docs({ match }) {
+function Docs({ match, t }) {
   const [pageCount, setPageCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(0);
   const [viewNum, setViewNum] = useState(1);
@@ -13,12 +15,17 @@ function Docs({ match }) {
 
   function handlePage(data) {
     setCurrentPage(data.selected);
-    window.scrollTo(0, 0);
+    document.getElementById("header").scrollIntoView();
   }
   const currentComment = (pages) => {
     return pages.slice(currentPage, currentPage + perPage).map((page) => {
       return <div className="currentComment">{page}</div>;
     });
+  };
+
+  const setLocation = () => {
+    window.history.replaceState({}, "", "/doc/1");
+    document.getElementById("header").scrollIntoView();
   };
 
   useEffect(() => {
@@ -28,47 +35,59 @@ function Docs({ match }) {
 
   useEffect(() => {
     setViewNum(window.location.pathname.split("/")[2]);
-    window.scrollTo(0, 0);
-  }, [window.location.pathname])
+    if (window.location.href.includes("#")) {
+      setCurrentPage(0);
+    }
+  }, [window.location.pathname]);
 
   return (
     <Container>
-      <div className="header">
+      <div id="header" className="header">
         <Subnav>
           <div className="theme Roboto_50pt_Black_L">Documents</div>
           <div className="nav">
             <div className="topic">
-              <a
-                style={{
-                  textDecoration: "none",
-                  color: "white",
-                  cursor: "pointer",
-                }}
-                className="Roboto_30pt_Black_L "
-                onClick={() => {
-                  setViewNum(1);
-                  window.scrollTo(0, 0);
-                  setCurrentPage(0);
-                }}
+              <HashLink
+                to={"/docs/1#whitepaper"}
+                style={{ textDecoration: "none", color: "white" }}
               >
-                Whitepaper
-              </a>
+                <a
+                  style={{
+                    textDecoration: "none",
+                    color: "white",
+                    cursor: "pointer",
+                  }}
+                  className="Roboto_30pt_Black_L "
+                  onClick={() => {
+                    setViewNum(1);
+                    setLocation();
+                    setCurrentPage(0);
+                  }}
+                >
+                  Whitepaper
+                </a>
+              </HashLink>
               <div
                 className="drop "
-                style={viewNum == 1 ? { maxHeight: "236px" } : {}}
+                style={viewNum == 1 ? { maxHeight: "290px" } : {}}
               >
                 <div className="text active">
-                  <a
-                    className={currentPage == 0 ? "active" : ""}
-                    style={{ textDecoration: "none" }}
-                    onClick={() => {
-                      setViewNum(1);
-                      window.scrollTo(0, 0);
-                      setCurrentPage(0);
-                    }}
+                  <HashLink
+                    to={"/docs/1#whitepaper"}
+                    style={{ textDecoration: "none", color: "white" }}
                   >
-                    Background
-                  </a>
+                    <a
+                      className={currentPage == 0 ? "active" : ""}
+                      style={{ textDecoration: "none" }}
+                      onClick={() => {
+                        setViewNum(1);
+                        setLocation();
+                        setCurrentPage(0);
+                      }}
+                    >
+                      Background
+                    </a>
+                  </HashLink>
                 </div>
                 <div className="text active">
                   <a
@@ -76,11 +95,11 @@ function Docs({ match }) {
                     style={{ textDecoration: "none" }}
                     onClick={() => {
                       setViewNum(1);
-                      window.scrollTo(0, 0);
+                      setLocation();
                       setCurrentPage(1);
                     }}
                   >
-                    About Our Business
+                    Terms and Definitions
                   </a>
                 </div>
                 <div className="text active">
@@ -89,11 +108,11 @@ function Docs({ match }) {
                     style={{ textDecoration: "none" }}
                     onClick={() => {
                       setViewNum(1);
-                      window.scrollTo(0, 0);
+                      setLocation();
                       setCurrentPage(2);
                     }}
                   >
-                    Our Platforms
+                    The Recharge Token
                   </a>
                 </div>
                 <div className="text active">
@@ -102,11 +121,11 @@ function Docs({ match }) {
                     style={{ textDecoration: "none" }}
                     onClick={() => {
                       setViewNum(1);
-                      window.scrollTo(0, 0);
+                      setLocation();
                       setCurrentPage(3);
                     }}
                   >
-                    Vision
+                    Our Platforms
                   </a>
                 </div>
                 <div className="text active">
@@ -115,11 +134,11 @@ function Docs({ match }) {
                     style={{ textDecoration: "none" }}
                     onClick={() => {
                       setViewNum(1);
-                      window.scrollTo(0, 0);
+                      setLocation();
                       setCurrentPage(4);
                     }}
                   >
-                    Disclaimers and Risks
+                    Vision
                   </a>
                 </div>
                 <div className="text active">
@@ -128,11 +147,11 @@ function Docs({ match }) {
                     style={{ textDecoration: "none" }}
                     onClick={() => {
                       setViewNum(1);
-                      window.scrollTo(0, 0);
+                      setLocation();
                       setCurrentPage(5);
                     }}
                   >
-                    Terms and Definitions
+                    Disclaimers and Risks
                   </a>
                 </div>
               </div>
@@ -143,32 +162,39 @@ function Docs({ match }) {
             </div>
             <div className="topic Roboto_30pt_Black_L unactive">
               <a
-                href="https://www.certik.org/projects/therecharge"
+                onClick={() =>
+                  window.open(
+                    "https://www.certik.org/projects/therecharge",
+                    "_blank"
+                  )
+                }
                 style={{ textDecoration: "none", color: "white" }}
               >
                 Token Audit
               </a>
             </div>
-            <div
-              className="topic Roboto_30pt_Black_L active"
-              onClick={() => {
-                setViewNum(2);
-                window.scrollTo(0, 0);
-              }}
-            >
-              <a style={{ textDecoration: "none", color: "white" }}>
-                Disclaimer
-              </a>
+            <div className="topic Roboto_30pt_Black_L active">
+              <HashLink
+                to={"/docs/2#disclaimer"}
+                style={{ textDecoration: "none", color: "white" }}
+              >
+                <a>Disclaimer</a>
+              </HashLink>
             </div>
-            <div
-              className="topic Roboto_30pt_Black_L active"
-              onClick={() => {
-                setViewNum(3);
-                window.scrollTo(0, 0);
-              }}
-            >
-              <a style={{ textDecoration: "none", color: "#ffffff" }}>
-                CI Download
+            <div className="topic Roboto_30pt_Black_L active">
+              <HashLink
+                to={"/docs/3#cidownload"}
+                style={{ textDecoration: "none", color: "white" }}
+              >
+                <a>CI Download</a>
+              </HashLink>
+            </div>
+            <div className="topic Roboto_30pt_Black_L unactive">
+              <a
+                onClick={() => window.open(t("Docs/userGuide"), "_blank")}
+                style={{ textDecoration: "none", color: "white" }}
+              >
+                User Guide
               </a>
             </div>
           </div>
@@ -279,7 +305,7 @@ function Docs({ match }) {
             </div>
           </Section>
 
-          <Section id="docsSection2">
+          <Section id="cidownload">
             <div className={viewNum == 3 ? "active" : "hide"}>
               <div className="ciContent">
                 <div className="theme Roboto_50pt_Black_L">CI Download</div>
@@ -471,7 +497,7 @@ const Line = styled.div`
 
 const Content = styled.div`
   z-index: 3;
-  margin-top: 306px;
+  // margin-top: 306px;
   margin-left: 60px;
   color: #ffffff;
 
@@ -520,6 +546,9 @@ const Section = styled.div`
   .desc .active {
     display: block;
   }
+  .active {
+    margin-top: 300px;
+  }
   .hide {
     display: none;
   }
@@ -566,4 +595,4 @@ const Background = styled.div`
   background-position: right 0px;
 `;
 
-export default Docs;
+export default withTranslation()(Docs);

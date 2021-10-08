@@ -6,9 +6,11 @@ import styled from "styled-components";
 import ReactPaginate from "react-paginate";
 import commentList from "./commentList/index";
 
+import { withTranslation } from "react-i18next";
+
 const perPage = 1;
 
-function Docs({ match }) {
+function Docs({ match, t }) {
   const [menu, setMenu] = useState("Whitepaper");
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -22,13 +24,18 @@ function Docs({ match }) {
 
   function handlePage(data) {
     setCurrentPage(data.selected);
-    window.scrollTo(0, 0);
+    document.getElementById("header").scrollIntoView();
   }
 
   const currentComment = (pages) => {
     return pages.slice(currentPage, currentPage + perPage).map((page) => {
       return <div className="currentComment">{page}</div>;
     });
+  };
+
+  const setLocation = () => {
+    window.history.replaceState({}, "", "/doc/1");
+    document.getElementById("header").scrollIntoView();
   };
 
   useEffect(() => {
@@ -45,7 +52,7 @@ function Docs({ match }) {
   }, []);
 
   return (
-    <Container>
+    <Container id="header">
       <div className="menuToggle Roboto_40pt_Black" onClick={() => toggle()}>
         <span>{menu}</span>
         <img src={menuOpen ? "/ic_rollup.svg" : "/ic_rolldown.svg"} />
@@ -62,7 +69,7 @@ function Docs({ match }) {
                 toggle();
                 setMenu("Whitepaper");
                 setViewNum(1);
-                window.scrollTo(0, 0);
+                setLocation();
                 setCurrentPage(0);
               }}
             >
@@ -78,7 +85,7 @@ function Docs({ match }) {
                   toggle();
                   setMenu("Whitepaper");
                   setViewNum(1);
-                  window.scrollTo(0, 0);
+                  setLocation();
                   setCurrentPage(0);
                 }}
               >
@@ -94,11 +101,11 @@ function Docs({ match }) {
                   toggle();
                   setMenu("Whitepaper");
                   setViewNum(1);
-                  window.scrollTo(0, 0);
+                  setLocation();
                   setCurrentPage(1);
                 }}
               >
-                About Our Business
+                Terms and Definitions
               </Link>
             </div>
             <div>
@@ -111,8 +118,25 @@ function Docs({ match }) {
                   toggle();
                   setMenu("Whitepaper");
                   setViewNum(1);
-                  window.scrollTo(0, 0);
+                  setLocation();
                   setCurrentPage(2);
+                }}
+              >
+                The Recharge Token
+              </Link>
+            </div>
+            <div>
+              <Link
+                to={"/docs/1"}
+                className="text active Roboto_30pt_Regular_Mobile"
+                href="/docs/1"
+                style={{ textDecoration: "none" }}
+                onClick={() => {
+                  toggle();
+                  setMenu("Whitepaper");
+                  setViewNum(1);
+                  setLocation();
+                  setCurrentPage(3);
                 }}
               >
                 Our Platforms
@@ -128,8 +152,8 @@ function Docs({ match }) {
                   toggle();
                   setMenu("Whitepaper");
                   setViewNum(1);
-                  window.scrollTo(0, 0);
-                  setCurrentPage(3);
+                  setLocation();
+                  setCurrentPage(4);
                 }}
               >
                 Vision
@@ -145,28 +169,11 @@ function Docs({ match }) {
                   toggle();
                   setMenu("Whitepaper");
                   setViewNum(1);
-                  window.scrollTo(0, 0);
-                  setCurrentPage(4);
-                }}
-              >
-                Disclaimers and Risks
-              </Link>
-            </div>
-            <div>
-              <Link
-                to={"/docs/1"}
-                className="text active Roboto_30pt_Regular_Mobile"
-                href="/docs/1"
-                style={{ textDecoration: "none" }}
-                onClick={() => {
-                  toggle();
-                  setMenu("Whitepaper");
-                  setViewNum(1);
-                  window.scrollTo(0, 0);
+                  setLocation();
                   setCurrentPage(5);
                 }}
               >
-                Terms and Definitions
+                Disclaimers and Risks
               </Link>
             </div>
           </div>
@@ -213,13 +220,24 @@ function Docs({ match }) {
               CI Download
             </Link>
           </div>
+          <div className="topic active Roboto_40pt_Black">
+            <a
+              style={{ textDecoration: "none", color: "#ffffff" }}
+              onClick={() => {
+                toggle();
+                window.open(t("Docs/userGuide"), "_blank");
+              }}
+            >
+              User Guide
+            </a>
+          </div>
         </div>
       </Subnav>
       <Content>
         <Section id="whitepaper">
           <div
             className={viewNum == 1 ? "active" : "hide"}
-            // style={{ "padding-top": "300px", "margin-top": "-300px" }}
+          // style={{ "padding-top": "300px", "margin-top": "-300px" }}
           >
             {currentComment(commentList)}
             <ReactPaginate
@@ -247,7 +265,7 @@ function Docs({ match }) {
             <div className="theme Roboto_50pt_Black_L">Disclaimer</div>
             <div
               id="information"
-              // style={{ "padding-top": "85px", "margin-top": "-85px" }}
+            // style={{ "padding-top": "85px", "margin-top": "-85px" }}
             >
               <div className="semiTitle Roboto_30pt_Black_L">Information</div>
               <div className="text Roboto_20pt_Regular_L">
@@ -266,7 +284,7 @@ function Docs({ match }) {
             </div>
             <div
               id="investmentrisks"
-              // style={{ "padding-top": "85px", "margin-top": "-85px" }}
+            // style={{ "padding-top": "85px", "margin-top": "-85px" }}
             >
               <div className="semiTitle Roboto_30pt_Black_L">
                 Investment risks
@@ -281,7 +299,7 @@ function Docs({ match }) {
             </div>
             <div
               id="nowarranties"
-              // style={{ "padding-top": "85px", "margin-top": "-85px" }}
+            // style={{ "padding-top": "85px", "margin-top": "-85px" }}
             >
               <div className="semiTitle Roboto_30pt_Black_L">No warranties</div>
               <div className="text Roboto_20pt_Regular_L">
@@ -292,7 +310,7 @@ function Docs({ match }) {
             </div>
             <div
               id="limitationofliability"
-              // style={{ "padding-top": "85px", "margin-top": "-85px" }}
+            // style={{ "padding-top": "85px", "margin-top": "-85px" }}
             >
               <div className="semiTitle Roboto_30pt_Black_L">
                 Limitation of liability
@@ -307,7 +325,7 @@ function Docs({ match }) {
             </div>
             <div
               id="lastamendment"
-              // style={{ "padding-top": "85px", "margin-top": "-85px" }}
+            // style={{ "padding-top": "85px", "margin-top": "-85px" }}
             >
               <div className="semiTitle Roboto_30pt_Black_L">
                 Last amendment
@@ -631,4 +649,4 @@ const Background = styled.div`
   background-position: right 0px;
 `;
 
-export default Docs;
+export default withTranslation()(Docs);

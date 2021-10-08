@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { withTranslation } from "react-i18next";
-import { Section } from 'react-scroll-section';
+import { Section } from "react-scroll-section";
 import Footer from "../../Components/Desktop/Footer";
 
 function randomNum() {
@@ -43,7 +43,10 @@ function Home({ t }) {
       <Content>
         <div className="first">
           <div className="left">
-            <div className="theme Roboto_80pt_Black">
+            <div
+              className="theme Roboto_80pt_Black"
+              onClick={() => console.log(t("Home/text/title"))}
+            >
               {t("Home/text/title")}
             </div>
             <div className="text Roboto_20pt_Regular_L">
@@ -246,6 +249,19 @@ function Home({ t }) {
                 className="partner"
                 onClick={() => {
                   window.open(
+                    "https://www.binance.org/en/smartChain",
+                    "_blank"
+                  );
+                }}
+              >
+                <img src="/ic_binancesmartchain.svg" />
+              </div>
+            </div>
+            <div className="tier">
+              <div
+                className="partner"
+                onClick={() => {
+                  window.open(
                     "https://www.certik.org/projects/therecharge",
                     "_blank"
                   );
@@ -253,8 +269,6 @@ function Home({ t }) {
               >
                 <img src="/ic_certick.svg" />
               </div>
-            </div>
-            <div className="tier">
               <div
                 className="partner"
                 onClick={() => {
@@ -271,6 +285,8 @@ function Home({ t }) {
               >
                 <img src="/ic_panda.svg" />
               </div>
+            </div>
+            <div className="tier2">
               <div
                 className="partner"
                 onClick={() => {
@@ -279,16 +295,14 @@ function Home({ t }) {
               >
                 <img src="/ic_piggycell.svg" />
               </div>
-            </div>
-            <div className="tier">
-              <div
+              {/* <div
                 className="partner"
                 onClick={() => {
                   window.open("http://www.keyeast.co.kr/index/", "_blank");
                 }}
               >
                 <img src="/ic_keyeast.svg" />
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
@@ -440,6 +454,30 @@ const Content = styled.div`
       .tier {
         display: flex;
         justify-content: center;
+
+        .partner {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          width: 362px;
+          height: 190px;
+          padding: 0 60px;
+          box-sizing: border-box;
+          border-color: transparent;
+          cursor: pointer;
+          img {
+            margin: auto;
+            width: 242px;
+          }
+        }
+        .partner:hover {
+          background-color: rgba(75, 75, 75, 0.45);
+        }
+      }
+
+      .tier2 {
+        display: flex;
+        // justify-content: center;
 
         .partner {
           display: flex;

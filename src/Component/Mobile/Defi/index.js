@@ -5,19 +5,19 @@ import { useSortBy, useTable } from "react-table";
 import styled from "styled-components";
 import axios from "axios";
 import { RotateCircleLoading } from "react-loadingg";
+import { HashLink } from "react-router-hash-link";
 import { withTranslation } from "react-i18next";
-/* Components */
-import ModalPool from "./modal_pool";
-import ModalSwap from "./modal_swap";
-import getPools from "./utils";
-
+import WalletConnect from "../../../Component/Components/Common/WalletConnect";
+/* Libraries */
+import {
+  getChargerList,
+  createContractInstance,
+  getChargerInfo,
+} from "../../../lib/read_contract/Station";
 /* State */
 import { useRecoilState } from "recoil";
-import {
-  modalPoolOpenState,
-  modalSwapOpenState,
-  modalPool2OpenState,
-} from "../../../store/modal";
+import { accountState } from "../../../store/web3";
+import { web3ReaderState } from "../../../store/read-web3";
 
 const convertNum = (num, { unitSeparator } = { unitSeparator: false }) => {
   let newNum;
@@ -36,70 +36,26 @@ const weiToEther = (wei) => {
   return fromWei(wei, "ether");
 };
 
-function Defi({
-  connectWallet,
-  onDisconnect,
-  account,
-  chainId,
-  web3,
-  // modalPoolOpen,
-  // setModalPoolOpen,
-  // modal2Open,
-  // setModal2Open,
-  // modalSwapOpen,
-  // setModalSwapOpen,
-  params,
-  setParams,
-  toast,
-  t,
-}) {
-  const [onLoading, setOnLoading] = useState(true);
-  const [modalPoolOpen, setModalPoolOpen] = useRecoilState(modalPoolOpenState);
-  const [modalSwapOpen, setModalSwapOpen] = useRecoilState(modalSwapOpenState);
-  const [modalPool2Open, setModalPool2Open] = useRecoilState(
-    modalPool2OpenState
-  );
-  const [chargerList, setChargerList] = useState([
-    {
-      type: "Flexible",
-      isLP: false,
-      address: "0xac66a0E8bf3de069Ffc043491CB8ca7b278529A0",
-    },
-    {
-      type: "Locked",
-      isLP: false,
-      address: "0xf1e99a4a9569A2Afd40e12b7686e31608Ebd2663",
-    },
-  ]);
-  const [chargerInfoList, setChargerInfoList] = useState([
-    {
-      name: "Fake Charger No.0",
-      apy: "100",
-      tvl: "100,000,000",
-      limit: "0",
-      balance: "1,000,000",
-      share: "100",
-      reward: "100,000",
-      period: "21.01.01 00:00:00 ~ 21.01.30 00:00:00(GMT)",
-      available: "7,000,000.00",
-      allowance: "0",
-      rewardSymbol: "RCGr",
-      stakeSymbol: "RCGs",
-      redemption: "2",
-      status: "1",
-    },
-  ]);
+function Defi({ toast, t }) {
+  const [account] = useRecoilState(accountState);
+  const [web3_R] = useRecoilState(web3ReaderState);
+  const NETWORKS = require("../../../lib/networks.json");
+  const CHARGERLIST_ABI = require("../../../lib/read_contract/abi/chargerList.json");
+  const CHARGER_ABI = require("../../../lib/read_contract/abi/charger.json");
 
+  const [onLoading, setOnLoading] = useState(true);
   const [myPools, setMyPools] = useState(null);
   const [analytics, setAnalytics] = useState({
     ERC: {},
     HRC: {},
+    BEP: {},
     general: {},
   });
 
-  const data = React.useMemo(() => (myPools === null ? [] : myPools), [
-    myPools,
-  ]);
+  const data = React.useMemo(
+    () => (myPools === null ? [] : myPools),
+    [myPools]
+  );
   const columns = React.useMemo(
     () => [
       {
@@ -141,45 +97,86 @@ function Defi({
     ],
   };
 
-  const {
-    getTableProps,
-    getTableBodyProps,
-    headerGroups,
-    rows,
-    prepareRow,
-  } = useTable({ columns, data, initialState }, useSortBy);
-
-  const handleModalPool = () => {
-    setModalPoolOpen(!modalPoolOpen);
-  };
-
-  const handleModalSwap = () => {
-    setModalSwapOpen(!modalSwapOpen);
-  };
+  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
+    useTable({ columns, data, initialState }, useSortBy);
 
   const loadMyPools = async () => {
     try {
-      let { data } = await axios.get(
-        `https://bridge.therecharge.io/charger/list/account/${account}`
+      const NETWORK = NETWORKS[process.env.REACT_APP_VERSION];
+      const ERC_WEB3 = web3_R["ERC"];
+      const BEP_WEB3 = web3_R["BEP"];
+      const ERC_CHARGERLIST_ADDRESS = NETWORK.chargerListAddress["ERC"];
+      const BEP_CHARGERLIST_ADDRESS = NETWORK.chargerListAddress["BEP"];
+
+      const ERC_CHARGERLIST_INSTANCE = createContractInstance(
+        ERC_WEB3,
+        ERC_CHARGERLIST_ADDRESS,
+        CHARGERLIST_ABI
       );
-      /*
-       * address: "0xc0F7C09dD6AcDcac9515Bc1c018c14E93C1757FF"
-       * balance: "19600000000000000000"
-       * name: "Test Flexible Charger"
-       * reward: "2451553674681048"
-       * symbol: ["RCG", "RCG"]
-       * type: "flexible"
-       */
-      let ret = data.map((charger, index) => {
-        return {
-          balance: makeNum(weiToEther(charger.balance)),
-          reward: makeNum(weiToEther(charger.reward), 6),
-          type:
-            charger.type === "flexible" ? "Flexible Staking" : "Locked Staking",
-          name: charger.name,
-        };
+      const BEP_CHARGERLIST_INSTANCE = createContractInstance(
+        BEP_WEB3,
+        BEP_CHARGERLIST_ADDRESS,
+        CHARGERLIST_ABI
+      );
+
+      const ERC_CHARGERLIST = await getChargerList(ERC_CHARGERLIST_INSTANCE);
+      const BEP_CHARGERLIST = await getChargerList(BEP_CHARGERLIST_INSTANCE);
+
+      const ERC_CHARGER_INSTANCES = ERC_CHARGERLIST.map((CHARGER_ADDRESS) => {
+        return createContractInstance(ERC_WEB3, CHARGER_ADDRESS, CHARGER_ABI);
       });
-      setMyPools(ret);
+      const BEP_CHARGER_INSTANCES = BEP_CHARGERLIST.map((CHARGER_ADDRESS) => {
+        return createContractInstance(BEP_WEB3, CHARGER_ADDRESS, CHARGER_ABI);
+      });
+
+      const ERC_CHARGERS_INFO = await Promise.all(
+        ERC_CHARGER_INSTANCES.map((CHARGER_INSTANCE) => {
+          return getChargerInfo(CHARGER_INSTANCE);
+        })
+      );
+      const BEP_CHARGERS_INFO = await Promise.all(
+        BEP_CHARGER_INSTANCES.map((CHARGER_INSTANCE) => {
+          return getChargerInfo(CHARGER_INSTANCE);
+        })
+      );
+
+      let ercPool = await Promise.all(ERC_CHARGER_INSTANCES.map(async (instance, i) => {
+        let { name } = ERC_CHARGERS_INFO[i]
+
+        let [balance, reward] = await Promise.all([
+          await instance.methods.balanceOf(account).call(),
+          await instance.methods.earned(account).call(),
+        ]);
+
+        return {
+          type: (name.includes("Locked") || name.includes("Zero")) ? "Locked Staking" : "Flexible Staking",
+          name: name,
+          balance: makeNum(fromWei(balance, "ether")),
+          reward: makeNum(fromWei(reward, "ether"))
+        }
+      }))
+
+      let bepPool = await Promise.all(BEP_CHARGER_INSTANCES.map(async (instance, i) => {
+        let { name } = BEP_CHARGERS_INFO[i]
+
+        let [balance, reward] = await Promise.all([
+          await instance.methods.balanceOf(account).call(),
+          await instance.methods.earned(account).call(),
+        ]);
+
+        return {
+          type: (name.includes("Locked") || name.includes("Zero")) ? "Locked Staking" : "Flexible Staking",
+          name: name,
+          balance: fromWei(balance, "ether"),
+          reward: fromWei(reward, "ether")
+        }
+      }))
+
+      let ALL_OF_CHARCERS_INFO = [...ercPool, ...bepPool].filter(pool => pool.balance > 0)
+
+      // console.log("ALL_OF_CHARCERS_INFO", ALL_OF_CHARCERS_INFO)
+
+      setMyPools(ALL_OF_CHARCERS_INFO);
     } catch (err) {
       console.log(err);
     }
@@ -187,8 +184,32 @@ function Defi({
 
   const loadAnalytics = async () => {
     try {
-      let { data } = await axios.get(`https://bridge.therecharge.io/analytics`);
-      setAnalytics(data);
+      const [analData, priceData, tvlData] = await Promise.all([
+        axios.get(`https://bridge.therecharge.io/analytics`),
+        axios.post(
+          `https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2`,
+          {
+            query:
+              'query{pairs(where:{id:"0x9c20be0f142fb34f10e33338026fb1dd9e308da3"}) { token0Price token1Price }}',
+          }
+        ),
+        axios.get(`https://api.therecharge.io/tvl`),
+      ]);
+      let { token0Price, token1Price } = priceData.data.data.pairs[0];
+      token0Price = makeNum(token0Price);
+      token1Price = makeNum(token1Price);
+      let TVL = makeNum("" + tvlData.data.TVL);
+      // console.log("TVL", tvlData);
+      // console.log(analData.data);
+      // console.log(token1Price);
+      setAnalytics({
+        ...analData.data,
+        ERC: {
+          ...analData.data.ERC,
+          price: token0Price, // 이더리움 유니스왑 실시간 가격
+        },
+        general: { tvl: TVL },
+      });
       /**
        * ERC: {},
        * HRC: {},
@@ -220,79 +241,42 @@ function Defi({
   };
 
   useInterval(() => {
-    loadMyPools();
+    if (account) { loadMyPools(); }
     loadAnalytics();
   }, 5000);
 
   useEffect(() => {
-    loadMyPools();
+    if (account) loadMyPools();
   }, [account]);
 
-  const updateChargerInfoList = () => {
-    if (chargerList === undefined) return;
-    let newChargerList = [];
-
-    let promiseReturns = chargerList.map(async (charger, index) => {
-      let information = await getPools.getChargerInformations({
-        web3: web3,
-        chargerAddress: charger.address,
-        userAddress: account,
-      });
-      // Object.assign(newChargerList[index], information);
-      newChargerList[index] = information;
-      return newChargerList;
-    });
-
-    Promise.all(promiseReturns).then(() => {
-      setChargerInfoList(newChargerList);
-    });
-  };
-  useInterval(() => updateChargerInfoList(), 5000);
-
-  useEffect(() => {
-    updateChargerInfoList();
-  }, [chargerList]);
-
-  // 월렛커넥트 -> web3 갱신 + userAccount 갱신 + chainId 갱신
-  // -> ChargerList 갱신
-  // -> ChargerInformation 갱신
-  React.useMemo(() => {
-    if (chainId < 1) return;
-    let ChargerList = getPools.getChargerList(chainId);
-    setChargerList(ChargerList);
-  }, [chainId]);
-
   return (
-    <Container
-      style={
-        modalPoolOpen || modalSwapOpen
-          ? {
-            position: "fixed",
-            top: "-20px",
-            width: "100%",
-            backgroundColor: "#02051c",
-          }
-          : {}
-      }
-    >
+    <Container>
       <Content id="station">
         <div className="first" style={{ paddingTop: "100px" }}>
           <div className="theme Roboto_50pt_Black">Station</div>
           <div className="contents">
             <div className="content">
-              <div className="box" onClick={() => handleModalPool()}>
+              <HashLink
+                className="box"
+                to={"/defi/station"}
+                style={{ textDecoration: "none" }}
+              >
                 <img src="/ic_chargingstation.svg" />
                 <div className="name Roboto_40pt_Black">Charging Station</div>
-              </div>
+              </HashLink>
               <div className="text Roboto_25pt_Regular">
                 {t("De-Fi/Station/charging-station")}
               </div>
             </div>
             <div className="content" style={{ marginTop: "80px" }}>
-              <div className="box" onClick={() => handleModalSwap()}>
+              <HashLink
+                className="box"
+                to={"/defi/swap"}
+                style={{ textDecoration: "none" }}
+              >
                 <img src="/ic_rechargingswap.svg" />
                 <div className="name Roboto_40pt_Black">Recharge swap</div>
-              </div>
+              </HashLink>
               <div className="text Roboto_25pt_Regular">
                 {t("De-Fi/Station/recharge-swap")}
               </div>
@@ -309,14 +293,13 @@ function Defi({
                 {t("De-Fi/Station/MyPool/ask-connect")}
               </div>
 
-              <div
-                className="walletConnect Roboto_20pt_Regular"
-                onClick={async () => {
-                  await connectWallet();
-                }}
-              >
-                <p>{account ? "" : "Wallet Connect"}</p>
-              </div>
+              <WalletConnect
+                need="2"
+                notConnected="Connect Wallet"
+                wrongNetwork="Change network for data"
+                m="auto"
+                w="540px"
+              />
             </div>
           ) : myPools === null ? (
             <Loading style={{ display: onLoading ? "" : "none" }}>
@@ -334,7 +317,7 @@ function Defi({
                 className="content Roboto_40pt_Black"
                 style={{ width: "356px" }}
               >
-                {t("De-Fi/MyPool/no-pool")}
+                {t("De-Fi/Station/MyPool/no-pool")}
               </div>
             </div>
           ) : (
@@ -379,25 +362,39 @@ function Defi({
                       <tr {...row.getRowProps()} className="tableRow">
                         {row.cells.map((cell) => {
                           return (
-                            <td
-                              {...cell.getCellProps()}
-                              onClick={() => {
-                                setParams({
-                                  type: `${myPools[row.index].type.split(" ")[0]
-                                    }`,
-                                  isLP: false,
-                                });
-
-                                setModalPool2Open(!modalPool2Open);
-                                handleModalPool();
-                              }}
+                            <HashLink
+                              to={`/defi/station#${myPools[row.index].type.split(" ")[0]
+                                }`}
                               style={{
-                                paddingTop: "20px",
+                                display: "table-cell",
+                                textDecoration: "none",
+                                padding: "10px",
                                 textAlign: "center",
+                                cursor: "pointer",
                               }}
                             >
                               {cell.render("Cell")}
-                            </td>
+                            </HashLink>
+
+                            // <td
+                            //   {...cell.getCellProps()}
+                            //   onClick={() => {
+                            //     setParams({
+                            //       type: `${myPools[row.index].type.split(" ")[0]
+                            //         }`,
+                            //       isLP: false,
+                            //     });
+
+                            //     setModalPool2Open(!modalPool2Open);
+                            //     handleModalPool();
+                            //   }}
+                            //   style={{
+                            //     paddingTop: "20px",
+                            //     textAlign: "center",
+                            //   }}
+                            // >
+                            //   {cell.render("Cell")}
+                            // </td>
                           );
                         })}
                       </tr>
@@ -417,12 +414,27 @@ function Defi({
           </div>
           <div className="contents">
             <div className="container">
+              <div className="center box exception">
+                <div className="title Roboto_30pt_Black">
+                  ${" "}
+                  {analytics.general.tvl
+                    ? convertNum(analytics.general.tvl, {
+                      unitSeparator: true,
+                    })
+                    : 0}
+                </div>
+                <div className="text Roboto_16pt_Regular_Gray">
+                  Total Value Locked
+                </div>
+              </div>
+            </div>
+            <div className="container">
               <div className="left box exception">
                 <div className="title Roboto_40pt_Black">
-                  {analytics.general.RedemptionRate
-                    ? analytics.general.RedemptionRate / 100
-                    : 0}{" "}
-                  %
+                  {/* {analytics.general.RedemptionRate
+                    ? makeNum(analytics.general.RedemptionRate) / 100
+                    : 0}{" "} */}
+                  2 %
                 </div>
                 <div className="text Roboto_20pt_Regular_Gray">
                   Current Redemption Rate
@@ -430,7 +442,10 @@ function Defi({
               </div>
               <div className="right box exception">
                 <div className="item">
-                  <div className="title Roboto_25pt_Black">
+                  <div
+                    className="title Roboto_25pt_Black"
+                    style={{ textAlign: "center" }}
+                  >
                     {analytics.general.ServicesPlugged
                       ? analytics.general.ServicesPlugged
                       : 0}
@@ -440,7 +455,10 @@ function Defi({
                   </div>
                 </div>
                 <div className="item">
-                  <div className="title Roboto_25pt_Black">
+                  <div
+                    className="title Roboto_25pt_Black"
+                    style={{ textAlign: "center" }}
+                  >
                     {analytics.general.ChargersActivated
                       ? analytics.general.ChargersActivated
                       : 0}
@@ -450,7 +468,10 @@ function Defi({
                   </div>
                 </div>
                 <div className="item">
-                  <div className="title Roboto_25pt_Black">
+                  <div
+                    className="title Roboto_25pt_Black"
+                    style={{ textAlign: "center" }}
+                  >
                     {analytics.general.BridgesActivated
                       ? analytics.general.BridgesActivated
                       : 0}
@@ -463,7 +484,10 @@ function Defi({
             </div>
             <div className="container">
               <div className="left box">
-                <div className="title Roboto_40pt_Black">
+                <div
+                  className="title Roboto_40pt_Black"
+                  style={{ zIndex: "2" }}
+                >
                   {analytics.ERC.total
                     ? convertNum(weiToEther(convertNum(analytics.ERC.total)), {
                       unitSeparator: true,
@@ -471,7 +495,10 @@ function Defi({
                     : 0}{" "}
                   RCG
                 </div>
-                <div className="text Roboto_20pt_Regular_Gray">
+                <div
+                  className="text Roboto_20pt_Regular_Gray"
+                  style={{ zIndex: "2" }}
+                >
                   Total Circulating Supply in ERC20
                 </div>
                 <div className="logo1">
@@ -485,8 +512,10 @@ function Defi({
                 <div className="content le">
                   <div className="item">
                     <div className="title Roboto_20pt_Black">
-                      {analytics.ERC.redemption ? analytics.ERC.redemption : 0}{" "}
-                      RCG
+                      {/* {analytics.ERC.redemption
+                        ? makeNum(analytics.ERC.redemption)
+                        : 0}{" "}RCG */}
+                      -
                     </div>
                     <div className="text Roboto_20pt_Regular_Gray">
                       Accumulated Carbon Redemption ERC20
@@ -494,7 +523,7 @@ function Defi({
                   </div>
                   <div className="item">
                     <div className="title Roboto_20pt_Black">
-                      $ {analytics.ERC.price ? analytics.ERC.price : 0}
+                      $ {analytics.ERC.price ? makeNum(analytics.ERC.price) : 0}
                     </div>
                     <div className="text Roboto_20pt_Regular_Gray">
                       Current RCG Price($) ERC20 Uniswap
@@ -504,7 +533,9 @@ function Defi({
                 <div className="content">
                   <div className="item">
                     <div className="title Roboto_20pt_Black">
-                      {analytics.ERC.swapped ? analytics.ERC.swapped : 0}
+                      {analytics.ERC.swapped
+                        ? makeNum(analytics.ERC.swapped)
+                        : 0}
                     </div>
                     <div className="text Roboto_20pt_Regular_Gray">
                       RCG (ERC20) Swapped in
@@ -512,7 +543,9 @@ function Defi({
                   </div>
                   <div className="item">
                     <div className="title Roboto_20pt_Black">
-                      {analytics.ERC.conversion ? analytics.ERC.conversion : 0}{" "}
+                      {analytics.ERC.conversion
+                        ? makeNum(analytics.ERC.conversion)
+                        : 0}{" "}
                       RCG
                     </div>
                     <div className="text Roboto_20pt_Regular_Gray">
@@ -524,7 +557,89 @@ function Defi({
             </div>
             <div className="container">
               <div className="left box">
-                <div className="title Roboto_40pt_Black">
+                <div
+                  className="title Roboto_40pt_Black"
+                  style={{ zIndex: "2" }}
+                >
+                  {analytics.BEP.total
+                    ? convertNum(weiToEther(convertNum(analytics.BEP.total)), {
+                      unitSeparator: true,
+                    })
+                    : 0}{" "}
+                  RCG
+                </div>
+                <div
+                  className="text Roboto_20pt_Regular_Gray"
+                  style={{ zIndex: "2" }}
+                >
+                  Total Circulating Supply in BEP20
+                </div>
+                <div className="logo3">
+                  <img
+                    src="/img_bep_back.svg"
+                    style={{ width: "150px", height: "150px" }}
+                  />
+                </div>
+              </div>
+              <div className="right box">
+                <div className="content le">
+                  <div className="item">
+                    <div className="title Roboto_20pt_Black">
+                      {/* {analytics.BEP.redemption
+                        ? makeNum(analytics.BEP.redemption)
+                        : 0}{" "}
+                      RCG */}
+                      -
+                    </div>
+                    <div className="text Roboto_20pt_Regular_Gray">
+                      Accumulated Carbon Redemption BEP20
+                    </div>
+                  </div>
+                  <div className="item">
+                    <div className="title Roboto_20pt_Black">
+                      ${" "}
+                      {analytics.BEP.price
+                        ? analytics.BEP.price === "0"
+                          ? "-"
+                          : makeNum(analytics.BEP.price)
+                        : 0}
+                    </div>
+                    <div className="text Roboto_20pt_Regular_Gray">
+                      Current RCG Price($) BEP20 Pancakeswap
+                    </div>
+                  </div>
+                </div>
+                <div className="content">
+                  <div className="item">
+                    <div className="title Roboto_20pt_Black">
+                      {analytics.BEP.swapped
+                        ? makeNum(analytics.BEP.swapped)
+                        : 0}
+                    </div>
+                    <div className="text Roboto_20pt_Regular_Gray">
+                      RCG (BEP20) Swapped in
+                    </div>
+                  </div>
+                  <div className="item">
+                    <div className="title Roboto_20pt_Black">
+                      {analytics.BEP.conversion
+                        ? makeNum(analytics.BEP.conversion)
+                        : 0}{" "}
+                      RCG
+                    </div>
+                    <div className="text Roboto_20pt_Regular_Gray">
+                      Accumulated Conversion Fee(BEP20)
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="container">
+              <div className="left box">
+                <div
+                  className="title Roboto_40pt_Black"
+                  style={{ zIndex: "2" }}
+                >
                   {analytics.HRC.total
                     ? convertNum(weiToEther(convertNum(analytics.HRC.total)), {
                       unitSeparator: true,
@@ -532,7 +647,10 @@ function Defi({
                     : 0}{" "}
                   RCG
                 </div>
-                <div className="text Roboto_20pt_Regular_Gray">
+                <div
+                  className="text Roboto_20pt_Regular_Gray"
+                  style={{ zIndex: "2" }}
+                >
                   Total Circulating Supply in HRC20
                 </div>
                 <div className="logo2">
@@ -546,8 +664,11 @@ function Defi({
                 <div className="content le">
                   <div className="item">
                     <div className="title Roboto_20pt_Black">
-                      {analytics.HRC.redemption ? analytics.HRC.redemption : 0}{" "}
-                      RCG
+                      {/* {analytics.HRC.redemption
+                        ? makeNum(analytics.HRC.redemption)
+                        : 0}{" "}
+                      RCG */}
+                      -
                     </div>
                     <div className="text Roboto_20pt_Regular_Gray">
                       Accumulated Carbon Redemption HRC20
@@ -555,7 +676,12 @@ function Defi({
                   </div>
                   <div className="item">
                     <div className="title Roboto_20pt_Black">
-                      $ {analytics.HRC.price ? analytics.HRC.price : 0}
+                      ${" "}
+                      {analytics.HRC.price
+                        ? analytics.HRC.price === "0"
+                          ? "-"
+                          : makeNum(analytics.HRC.price)
+                        : 0}
                     </div>
                     <div className="text Roboto_20pt_Regular_Gray">
                       Current RCG Price($) HRC20-Mdex
@@ -565,7 +691,9 @@ function Defi({
                 <div className="content">
                   <div className="item">
                     <div className="title Roboto_20pt_Black">
-                      {analytics.HRC.swapped ? analytics.HRC.swapped : 0}
+                      {analytics.HRC.swapped
+                        ? makeNum(analytics.HRC.swapped)
+                        : 0}
                     </div>
                     <div className="text Roboto_20pt_Regular_Gray">
                       RCG (HRC20) Swapped in
@@ -573,55 +701,13 @@ function Defi({
                   </div>
                   <div className="item">
                     <div className="title Roboto_20pt_Black">
-                      {analytics.HRC.conversion ? analytics.HRC.conversion : 0}{" "}
+                      {analytics.HRC.conversion
+                        ? makeNum(analytics.HRC.conversion)
+                        : 0}{" "}
                       RCG
                     </div>
                     <div className="text Roboto_20pt_Regular_Gray">
                       Accumulated Conversion Fee(HRC20)
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="container">
-              <div className="left box">
-                <div className="title Roboto_40pt_Black">0 RCG</div>
-                <div className="text Roboto_20pt_Regular_Gray">
-                  Total Circulating Supply in BEP20
-                </div>
-                <div className="logo3">
-                  <img
-                    src="/img_bep_back.svg"
-                    style={{ width: "150px", height: "150px" }}
-                  />
-                </div>
-              </div>
-              <div className="right box">
-                <div className="content le">
-                  <div className="item">
-                    <div className="title Roboto_20pt_Black">0 RCG</div>
-                    <div className="text Roboto_20pt_Regular_Gray">
-                      Accumulated Carbon Redemption BEP20
-                    </div>
-                  </div>
-                  <div className="item">
-                    <div className="title Roboto_20pt_Black">$ 0.00</div>
-                    <div className="text Roboto_20pt_Regular_Gray">
-                      Current RCG Price($) BEP20 Pancakeswap
-                    </div>
-                  </div>
-                </div>
-                <div className="content">
-                  <div className="item">
-                    <div className="title Roboto_20pt_Black">0.00</div>
-                    <div className="text Roboto_20pt_Regular_Gray">
-                      RCG (BEP20) Swapped in
-                    </div>
-                  </div>
-                  <div className="item">
-                    <div className="title Roboto_20pt_Black">0.00 RCG</div>
-                    <div className="text Roboto_20pt_Regular_Gray">
-                      Accumulated Conversion Fee(BEP20)
                     </div>
                   </div>
                 </div>
@@ -637,42 +723,10 @@ function Defi({
             </div> */}
         </div>
       </Content>
-      <ModalPool
-        web3={web3}
-        connectWallet={connectWallet}
-        onDisconnect={onDisconnect}
-        account={account}
-        chargerList={chargerList}
-        chargerInfoList={chargerInfoList}
-        modalPoolOpen={modalPoolOpen}
-        setModalPoolOpen={setModalPoolOpen}
-        modalPool2Open={modalPool2Open}
-        setModalPool2Open={setModalPool2Open}
-        params={params}
-        setParams={setParams}
-        chainId={chainId}
-        toast={toast}
-      />
-      <ModalSwap
-        web3={web3}
-        modalSwapOpen={modalSwapOpen}
-        handleModalSwap={handleModalSwap}
-        connectWallet={connectWallet}
-        onDisconnect={onDisconnect}
-        account={account}
-        chainId={chainId}
-        toast={toast}
-        chargerList={chargerList}
-        chargerInfoList={chargerInfoList}
-        redemption={analytics.general.RedemptionRate}
-      />
     </Container>
   );
 }
-//   (prevProps, nextProps) => {
-//     return false;
-//   }
-// );
+
 const Container = styled.div`
   margin: auto auto;
   margin-top: 105px;
@@ -826,6 +880,18 @@ const Content = styled.div`
         flex-direction: column;
         gap: 16px 0;
 
+        .center {
+          position: relative;
+          width: 100%;
+          height: 120px;
+          display: flex;
+          flex-direction: column;
+          gap: 8px 0;
+          box-sizing: border-box;
+          padding: 20px;
+          justify-content: center;
+          align-items: center;
+        }
         .left {
           position: relative;
           height: 230px;
