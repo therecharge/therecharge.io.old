@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import Networks from "./components/Networks";
 import Slider from "./components/Slider";
 import List from "./components/List";
-
+import Header from "./components/Header";
 function Station(props) {
   const [t] = useTranslation();
   const [params, setParams] = useState({
@@ -34,10 +34,8 @@ function Station(props) {
     <Container>
       <Content>
         <span className="Roboto_50pt_Black pool-title1">Charging Station</span>
-        <Networks setNetwork={setNetwork} network={network} />
-        <Slider setParams={setParams} params={params} />
-        <Line />
-        <List params={params} toast={props.toast} network={network} />
+        <Header style={{ zIndex: "1" }} />
+        <List params={params} toast={props.toast} network={network} style={{ zIndex: "0" }} />
       </Content>
     </Container>
   );
