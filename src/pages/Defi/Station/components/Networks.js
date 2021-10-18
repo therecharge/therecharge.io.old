@@ -92,7 +92,7 @@ const DropDownContents = styled.div`
   box-shadow: 0 0 5px 0 rgba(255, 255, 255, 0.16);
   background-color: rgba(0, 0, 0, 0.9);
   margin-top:8px;
-position:absolute;
+  position:absolute;
 `
 const DropdownList = styled.div`
 padding: 10px 0px;
