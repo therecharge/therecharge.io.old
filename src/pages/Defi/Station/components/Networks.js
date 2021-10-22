@@ -1,11 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 //store
 import { useRecoilState } from "recoil";
-import { useState, useEffect, useRef } from "react";
 import { requireNetworkState } from "../../../../store/web3";
 import { ReactComponent as DropdownClose } from "./List/assets/dropdown-close.svg";
-import { ReactComponent as DropdownOpen } from "./List/assets/dropdown-open.svg";
+// import { ReactComponent as DropdownOpen } from "./List/assets/dropdown-open.svg";
 
 function Networks({ setNetwork, network }) {
   const [isOpen, setOpen] = useState(false);
@@ -13,7 +12,31 @@ function Networks({ setNetwork, network }) {
   const [requireNetwork, setRequireNetwork] = useRecoilState(
     requireNetworkState
   );
-  let Samples = ["All Networks", "ERC-20", "BEP-20", "HRC-20"];
+
+  let networksParam = [
+    {
+      name: "All Networks",
+      network: "ALL",
+      rpc: 1
+    },
+    {
+      name: "ERC-20",
+      network: "ERC",
+      rpc: 1
+    },
+    {
+      name: "BEP-20",
+      network: "BEP",
+      rpc: 56
+    },
+    {
+      name: "HRC-20",
+      network: "HRC",
+      rpc: null
+    }
+  ]
+
+
   return (
     <DropDownWrapper>
       <NetWork onClick={() => { setOpen(!isOpen) }}>
@@ -28,14 +51,19 @@ function Networks({ setNetwork, network }) {
         {isOpen === false ?
           <></> :
           <DropDownContents>
-            {Samples.map((sample) => (
+            {networksParam.map((networkParam, i) => (
               <DropdownList
                 className={"Roboto_20pt_Regular"}
-                onClick={() => {
-                  SetclickNetwork(sample)
-                  setRequireNetwork(1)
-                }}
-              >{sample}</DropdownList>
+                style={i === 3 ? { cursor: "not-allowed" } : {}}
+                onClick={i === 3 ?
+                  () => { } :
+                  () => {
+                    SetclickNetwork(networkParam.name)
+                    setNetwork(networkParam.network)
+                    setRequireNetwork(networkParam.rpc)
+                  }
+                }
+              >{networkParam.name}</DropdownList>
             ))}
           </DropDownContents>
         }
@@ -93,6 +121,7 @@ const DropDownContents = styled.div`
   background-color: rgba(0, 0, 0, 0.9);
   margin-top:8px;
   position:absolute;
+  z-index: 1;
 `
 const DropdownList = styled.div`
 padding: 10px 0px;

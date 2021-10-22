@@ -30,9 +30,10 @@ function SortBy({ setParams, params }) {
           {Samples.map((sample) => {
             return (
               <DropdownList
+                style={{ cursor: "not-allowed" }}
                 className={"Roboto_20pt_Regular"}
                 onClick={() => {
-                  SetclickSort(sample)
+                  // SetclickSort(sample)
                   // setRequireNetwork(1)
                 }}
               >{sample}</DropdownList>
@@ -69,7 +70,6 @@ const BoxContainer = styled.div`
   height: 42px;
   border-radius: 30px;
   background-color: var(--black-30);
-
 `;
 const BtnWrapper = styled.div`
 display:flex;
@@ -87,6 +87,7 @@ const DropDownContents = styled.div`
   margin-top:8px;
   z-index:0;
   position:absolute;
+  z-index: 1;
 `
 const DropdownList = styled.div`
 padding: 10px 0px;

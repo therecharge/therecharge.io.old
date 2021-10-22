@@ -1,18 +1,41 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import { useTranslation } from "react-i18next";
-import { useState, useEffect, useRef } from "react";
-import { requireNetworkState } from "../../../../store/web3";
 import { ReactComponent as DropdownClose } from "./List/assets/dropdown-close.svg";
-import { ReactComponent as DropdownOpen } from "./List/assets/dropdown-open.svg";
+
 function Slider({ setParams, params }) {
   const [t] = useTranslation();
   const [isOpen, setOpen] = useState(false);
   const [clickType, SetclickType] = useState("All Type")
-  // const [requireNetwork, setRequireNetwork] = useRecoilState(
-  //   requireNetworkState
-  // );
-  let Samples = ["All Type", "Flexible", "LP Flexible", "Locked", "LP Locked"];
+
+  let typesParam = [
+    {
+      name: "All Type",
+      type: "ALL",
+      isLP: "ALL",
+    },
+    {
+      name: "Locked",
+      type: "Locked",
+      isLP: false,
+    },
+    {
+      name: "Flexible",
+      type: "Flexible",
+      isLP: false,
+    },
+    {
+      name: "LP Locked",
+      type: "Locked",
+      isLP: true,
+    },
+    {
+      name: "LP Flexible",
+      type: "Flexible",
+      isLP: true,
+    },
+  ]
+
   return (
     <Type onClick={() => { setOpen(!isOpen) }}>
       <Text className={"Roboto_20pt_Black_L "}>Type</Text>
@@ -22,19 +45,19 @@ function Slider({ setParams, params }) {
           <DropdownClose fill={"#fff"} />
         </BtnWrapper>
       </BoxContainer>
-      {isOpen === false ?
-        <div></div>
-        :
+      {!isOpen ? <></> :
         <DropDownContents>
-          {Samples.map((sample) => {
+          {typesParam.map((typeParam, i) => {
             return (
-              <DropdownList
-                className={"Roboto_20pt_Regular"}
-                onClick={() => {
-                  SetclickType(sample)
-                  // setRequireNetwork(1)
-                }}
-              >{sample}</DropdownList>
+              <Button
+                i={i}
+                SetclickType={SetclickType}
+                setParams={setParams}
+                pam={params}
+                type={typeParam.type}
+                text={typeParam.name}
+                typeParam={typeParam}
+              ></Button>
             )
           })}
 
@@ -110,6 +133,7 @@ const DropDownContents = styled.div`
   background-color: rgba(0, 0, 0, 0.9);
   margin-top:8px;
   position:absolute;
+  z-index: 1;
 `
 const DropdownList = styled.div`
 padding: 10px 0px;
@@ -160,95 +184,56 @@ const Content = styled.div`
 
 export default React.memo(Slider);
 
-// function Button({ type, text, setParams, pam }) {
-//   let params;
-//   if (type === "Locked") {
-//     if (text.includes("LP")) {
-//       params = {
-//         type: "Locked",
-//         isLP: true,
-//         address: "0x",
-//       };
-//     } else {
-//       params = {
-//         type: "Locked",
-//         isLP: false,
-//         address: "0x",
-//       };
-//     }
-//   } else {
-//     if (text.includes("LP")) {
-//       params = {
-//         type: "Flexible",
-//         isLP: true,
-//         address: "0x",
-//       };
-//     } else {
-//       params = {
-//         type: "Flexible",
-//         isLP: false,
-//         address: "0x",
-//       };
-//     }
-//   }
-//   return (
+function Button({ type, text, setParams, pam, typeParam, SetclickType, i }) {
+  let params;
+  if (type === "ALL") {
+    params = {
+      type: "ALL",
+      isLP: "ALL",
+    };
+  } else if (type === "Locked") {
+    if (text.includes("LP")) {
+      params = {
+        type: "Locked",
+        isLP: true,
+      };
+    } else {
+      params = {
+        type: "Locked",
+        isLP: false,
+      };
+    }
+  } else {
+    if (text.includes("LP")) {
+      params = {
+        type: "Flexible",
+        isLP: true,
+      };
+    } else {
+      params = {
+        type: "Flexible",
+        isLP: false,
+      };
+    }
+  }
+  return (
 
-//     <ContainerButton
-//       onClick={() => {
-//         type !== pam.type ? setParams(params) : console.log("");
-//       }}
-//     >
-//       <div className="box">
-//         <img
-//           className="Roboto_20pt_Black"
-//           src={
-//             type === "Locked"
-//               ? text.includes("LP")
-//                 ? "/ic_lockedstaking_lp.png"
-//                 : "/ic_lockedstaking.svg"
-//               : text.includes("LP")
-//               ? "/ic_flexiblestaking_lp.png"
-//               : "/ic_flexiblestaking.svg"
-//           }
-//         />
-//         <p
-//           className={
-//             window.innerWidth > 1088 ? "Roboto_20pt_Black" : "Roboto_30pt_Black"
-//           }
-//         >
-//           {text}
-//         </p>
-//       </div>
-//     </ContainerButton>
-//   );
-// }
-
-// const ContainerButton = styled.div`
-//   .box {
-//     display: flex;
-//     flex-direction: column;
-//     min-width: 260px;
-//     height: 280px;
-//     background-color: var(--black-30);
-//     border-radius: 10px;
-//     -ms-overflow-style: none; /* IE and Edge */
-//     scrollbar-width: none; /* Firefox */
-//   }
-//   .box::-webkit-scrollbar {
-//     display: none; /* Chrome, Safari, Opera*/
-//   }
-//   img {
-//     margin: auto auto;
-//     margin-bottom: 0px;
-//     height: 60px;
-//   }
-//   p {
-//     margin: auto auto;
-//     margin-top: 20px;
-//   }
-//   @media (min-width: 1088px) {
-//     min-width: 260px;
-//     margin: 0;
-
-//   }
-// `;
+    <DropdownList
+      style={i === 3 || i === 4 ? { cursor: "not-allowed" } : {}}
+      className="Roboto_20pt_Regular"
+      onClick={i === 3 || i === 4 ?
+        () => { } :
+        type !== pam.type ?
+          () => {
+            setParams(params)
+            SetclickType(typeParam.name)
+          }
+          : () => SetclickType(typeParam.name)
+      }
+    >
+      <div className="box">
+        {text}
+      </div>
+    </DropdownList>
+  );
+}
